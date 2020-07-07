@@ -1,4 +1,5 @@
-# This function extracts zip code level data from 14 different state dept. of health API's and gathers them all into a single data frame
+# This function extracts zip code level COVID-19 case data from 14 different 
+# state dept. of health API's and gathers them all into a single data frame
 
 zip_cases_extract <- function() {
   require(dplyr)
