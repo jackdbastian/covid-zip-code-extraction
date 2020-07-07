@@ -1,1 +1,0 @@
-# covid-zip-code-extraction
