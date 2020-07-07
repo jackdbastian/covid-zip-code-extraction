@@ -1,9 +1,11 @@
-library(dplyr)
-library(magrittr)
-library(jsonlite)
-library(readr)
+# This function extracts zip code level data from 14 different state dept. of health API's and gathers them all into a single data frame
 
-zip_extract <- function() {
+zip_cases_extract <- function() {
+  require(dplyr)
+  require(magrittr)
+  require(readr)
+  require(jsonlite)
+  
   AZ_endpoint <- "https://services1.arcgis.com/mpVYz37anSdrK4d8/ArcGIS/rest/services/CVD_ZIPS_FORWEBMAP/FeatureServer/0/query?where=OBJECTID%3E0&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=*&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token="
   FL_endpoint <- "https://services1.arcgis.com/CY1LXxl9zlJeBuRZ/ArcGIS/rest/services/Florida_COVID19_Cases_by_Zip_Code_vw/FeatureServer/0//query?where=0%3D0&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&resultType=none&distance=0.0&units=esriSRUnit_Meter&returnGeodetic=false&outFields=ZIP%2C+Cases_1&returnGeometry=false&returnCentroid=false&featureEncoding=esriDefault&multipatchOption=xyFootprint&maxAllowableOffset=&geometryPrecision=&outSR=&datumTransformation=&applyVCSProjection=false&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnExtentOnly=false&returnQueryGeometry=false&returnDistinctValues=false&cacheHint=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&having=&resultOffset=&resultRecordCount=&returnZ=false&returnM=false&returnExceededLimitFeatures=true&quantizationParameters=&sqlFormat=none&f=pjson&token="
   IL_endpoint <- "https://www.dph.illinois.gov/sitefiles/COVIDZip.json?nocache=1"
@@ -41,13 +43,13 @@ zip_extract <- function() {
               transmute(zip_code = as.character(GEOID10), case_count = as.numeric(cases_num)),
             fromJSON(PA_endpoint)$features$attributes %>% 
               transmute(zip_code = as.character(POSTCODE), case_count = as.numeric(Positive)) %>% 
-              filter(case_count >= 0),
+              na_if(-1),
             read_csv(RI_endpoint) %>% 
               transmute(zip_code = as.character(ZCTA), case_count = as.numeric(`Rhode Island COVID-19 cases`)),
             fromJSON(SC_endpoint)$features$attributes %>% 
               transmute(zip_code = as.character(POSTCODE), case_count = as.numeric(Positive)),
             read_csv(VA_endpoint) %>% 
-              transmute(zip_code = as.character(ZCTA), case_count = as.numeric(`Number of Cases`)) %>% 
-            filter(grepl("\\d$", zip_code) & !grepl("Unknown", zip_code))
-  )
+              transmute(zip_code = as.character(ZCTA), case_count = as.numeric(`Number of Cases`))
+  ) %>% 
+    filter(grepl("^\\d*$", zip_code))
 }
