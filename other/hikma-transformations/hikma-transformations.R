@@ -107,8 +107,9 @@ ns_biz_ended <-
 
 # Assembling Master Dataset -----------------------------------------------
 
+  ##"hikma_active_and_ended" is the final df including all active and ended 'work', 'school' and 'event' policies which hikma has data for.
+
 hikma_active_and_ended <- 
   bind_rows(hikma_active_reformat, event_ended, ns_biz_ended) %>% 
   filter(!is.na(Start_Date), !is.na(Source))
 
-hikma_active_and_ended %>% write_csv("output-data/hikma-all-county-policies.csv")
